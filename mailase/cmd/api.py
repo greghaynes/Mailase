@@ -13,4 +13,3 @@ def main():
         wsgi.serve_forever()
     except KeyboardInterrupt:
         pass
-
