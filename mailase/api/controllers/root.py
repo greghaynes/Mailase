@@ -23,7 +23,7 @@ class Mail(object):
     subject = str
     text_payloads = [str]
 
-    def __init__(self, id, mailbox_id, from_ = None, subject = None):
+    def __init__(self, id, mailbox_id, from_=None, subject=None):
         self.id = id
         self.mailbox_id = mailbox_id
         msg = self.msg
@@ -45,7 +45,7 @@ class Mail(object):
                 break
             except OSError:
                 pass
-    
+
         if not valid:
             return None
 
@@ -92,7 +92,6 @@ class MailboxController(RestController):
     @wsexpose([Mailbox])
     def index(self):
         return [Mailbox(x) for x in ('INBOX', 'SPAM')]
-
 
     @wsexpose(Mailbox, str)
     def get(self, name):

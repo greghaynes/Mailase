@@ -1,4 +1,3 @@
-import os
 from unittest import TestCase
 from pecan import set_config
 from pecan.testing import load_test_app
@@ -13,10 +12,13 @@ class FunctionalTest(TestCase):
     """
 
     def setUp(self):
-        self.app = load_test_app(os.path.join(
-            os.path.dirname(__file__),
-            'config.py'
-        ))
+        config = {
+            'app': {
+                'root': 'mailase.api.controllers.root.RootController',
+                'modules': ['mailase.api']
+            }
+        }
+        self.app = load_test_app(config)
 
     def tearDown(self):
         set_config({}, overwrite=True)
