@@ -7,6 +7,7 @@ class TestRootController(FunctionalTest):
         response = self.app.get('/a/bogus/url', expect_errors=True)
         assert response.status_int == 404
 
+
 class TestMailboxController(FunctionalTest):
 
     def test_mailbox_index(self):
