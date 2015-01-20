@@ -1,14 +1,14 @@
-from mailase.tests.api import FunctionalTest
+from mailase.tests.functional import base
 
 
-class TestRootController(FunctionalTest):
+class TestRootController(base.FunctionalTest):
 
     def test_get_not_found(self):
         response = self.app.get('/a/bogus/url', expect_errors=True)
         assert response.status_int == 404
 
 
-class TestMailboxController(FunctionalTest):
+class TestMailboxController(base.FunctionalTest):
 
     def test_mailbox_index(self):
         response = self.app.get('/mailbox/')

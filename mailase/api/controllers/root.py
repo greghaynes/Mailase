@@ -24,13 +24,16 @@ class MailSearchController(RestController):
     @wsexpose(MailSearchResult, str)
     def get(self, query):
         es = Elasticsearch([{'host': 'localhost'}])
-        search_res = es.search("emails", q=query, fields="from,info_flags,subject", size=100)
+        search_res = es.search("emails", q=query,
+                               fields="from,info_flags,subject",
+                               size=100)
         hits = search_res['hits']['hits']
 
         from_ = lambda x: x['fields']['from'][0]
         subject = lambda x: x['fields']['subject'][0]
         info_flags = lambda x: x['fields']['info_flags'][0]
-        mails = [Mail("%s:%s" % (x['_id'], info_flags(x)), '.INBOX', from_(x), subject(x)) for x in hits]
+        mails = [Mail("%s:%s" % (x['_id'], info_flags(x)),
+                      '.INBOX',from_(x),subject(x)) for x in hits]
         return MailSearchResult(query, mails)
 
 
