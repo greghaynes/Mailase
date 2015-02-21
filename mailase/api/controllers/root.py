@@ -1,18 +1,24 @@
-from mailase.api.model import (Mail,
-                               Mailbox,
-                               MailSearchResult)
+import os
 
 from elasticsearch.client import Elasticsearch
-from pecan import abort
+from pecan import abort, conf
 from pecan.rest import RestController
 from wsmeext.pecan import wsexpose
 
+from mailase.api.model import (Mail,
+                               Mailbox,
+                               MailSearchResult)
 
 class MailboxController(RestController):
 
     @wsexpose([Mailbox])
     def index(self):
-        return [Mailbox(x) for x in ('INBOX', 'SPAM')]
+        maildirs = []
+        for maildir in conf.mail.maildirs:
+            for entry in os.listdir(maildir):
+                if os.path.isdir(os.path.join(maildir, entry)):
+                    maildirs.append(entry)
+        return [Mailbox(x) for x in maildirs]
 
     @wsexpose(Mailbox, str)
     def get(self, name):
