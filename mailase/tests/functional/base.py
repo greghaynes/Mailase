@@ -38,7 +38,6 @@ class CopiedFileFixture(fixtures.Fixture):
 
 
 class FunctionalTest(TestCase):
-
     test_data_subdir = 'mailase/tests/data'
 
     def setUp(self):
@@ -54,6 +53,10 @@ class FunctionalTest(TestCase):
             },
             'mail': {
                 'maildirs': self.maildir.path
+            },
+            'search': {
+                'server_url': ['http://localhost:9200'],
+                'index': 'mailase_test'
             }
         }
         self.app = load_test_app(config)
@@ -75,9 +78,9 @@ class FunctionalTest(TestCase):
 
     def useMailboxSubdir(self, mailbox_name, mua_subdir):
         mailbox = self.useMailbox(mailbox_name)
-        if mua_subdir not in ('cur', 'new', 'tmp'):
-            raise ValueError('mua_subdir is "%s" but needs to be cur, tmp, or"\
-                             "new' % mua_subdir)
+        if mua_subdir not in ('cur', 'new'):
+            raise ValueError('mua_subdir is "%s" but needs to be cur, or new'
+                             % mua_subdir)
 
         subdir_path = os.path.join(mailbox.path, mua_subdir)
         try:

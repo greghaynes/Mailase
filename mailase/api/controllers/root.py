@@ -1,14 +1,14 @@
 import os
 
-from elasticsearch.client import Elasticsearch
-from pecan import abort, conf
+from pecan import conf
 from pecan.rest import RestController
-from wsme.exc import InvalidInput
+from wsme import wsproperty
 from wsmeext.pecan import wsexpose
 
 from mailase.api.model import (Mail,
                                Mailbox,
-                               MailSearchResult)
+                               MailSearchRecentResult)
+import mailase.search.dbapi as search_api
 
 class NotFound(Exception):
     code = 404
@@ -19,57 +19,51 @@ class NotFound(Exception):
 
 
 class MailboxController(RestController):
-
     @wsexpose([Mailbox])
     def index(self):
         mailboxes = []
         for entry in os.listdir(conf.mail.maildirs):
             mailbox = Mailbox(entry)
-            if mailbox.exists:
+            if mailbox.exists():
                 mailboxes.append(mailbox)
         return mailboxes
 
-    @wsexpose(Mailbox, str)
-    def get(self, name):
-        mbox = Mailbox(name)
-        if not mbox.exists():
-            raise NotFound()
-        return mbox
+    @wsexpose(Mailbox, str, int, int)
+    def get(self, mailbox_id, offset=None, limit=None):
+        mailbox = Mailbox(mailbox_id)
+        if not mailbox.exists():
+            raise NotFound
+        return mailbox
 
 
-class MailSearchController(RestController):
+class SearchRecentControler(RestController):
+    @wsexpose(MailSearchRecentResult, int, int)
+    def index(self, offset=None, limit=None):
+        offset = offset or 0
+        limit = limit or 100
+        return MailSearchRecentResult(offset, limit, [])
 
-    @wsexpose(MailSearchResult, str)
-    def get(self, query):
-        es = Elasticsearch([{'host': 'localhost'}])
-        search_res = es.search("emails", q=query,
-                               fields="from,info_flags,subject",
-                               size=100)
-        hits = search_res['hits']['hits']
 
-        from_ = lambda x: x['fields']['from'][0]
-        subject = lambda x: x['fields']['subject'][0]
-        info_flags = lambda x: x['fields']['info_flags'][0]
-        mails = [Mail("%s:%s" % (x['_id'], info_flags(x)),
-                      '.INBOX',from_(x),subject(x)) for x in hits]
-        return MailSearchResult(query, mails)
+class SearchController(RestController):
+    recent = SearchRecentControler()
+
+    @wsexpose(bool)
+    def index(self):
+        reachable = search_api.server_is_reachable()
+        return reachable
 
 
 class MailController(RestController):
-
-    search = MailSearchController()
-
     @wsexpose(Mail, str, str)
     def get(self, mailbox_id, mail_id):
-        mail = Mail(mail_id, mailbox_id)
-        if not mail.exists():
+        mail = Mail.from_disk(mailbox_id, mail_id)
+        if mail is None:
             raise NotFound()
         else:
-            mail.load_text_payloads()
             return mail
 
 
 class RootController(object):
-
-    mailbox = MailboxController()
+    mailboxes = MailboxController()
     mail = MailController()
+    search = SearchController()

@@ -1,6 +1,3 @@
-import sys
-import json
-
 from wsgiref import simple_server
 
 from mailase.api.app import setup_app

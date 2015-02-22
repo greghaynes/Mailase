@@ -1,3 +1,4 @@
 elasticsearch
 pecan
+watchdog
 WSME
