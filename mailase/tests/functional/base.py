@@ -24,14 +24,16 @@ class Dir(Fixture):
 
 class CopiedFileFixture(fixtures.Fixture):
     def __init__(self, src, dest):
+        super(CopiedFileFixture, self).__init__()
         self.src = src
         self.dest = dest
 
     def setUp(self):
-        self.addCleanup(self.cleanup)
+        super(CopiedFileFixture, self).setUp()
         shutil.copy2(self.src, self.dest)
 
-    def cleanup(self):
+    def cleanUp(self):
+        super(CopiedFileFixture, self).cleanUp()
         os.remove(self.dest)
 
 
@@ -51,7 +53,7 @@ class FunctionalTest(TestCase):
                 'modules': ['mailase.api'],
             },
             'mail': {
-                'maildirs': [self.maildir.path]
+                'maildirs': self.maildir.path
             }
         }
         self.app = load_test_app(config)
@@ -94,4 +96,5 @@ class FunctionalTest(TestCase):
         msg_dest_path = os.path.join(subdir.path, msg_id)
 
         msg = CopiedFileFixture(msg_src_path, msg_dest_path)
+        self.useFixture(msg)
         return msg

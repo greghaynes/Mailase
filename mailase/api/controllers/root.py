@@ -3,26 +3,38 @@ import os
 from elasticsearch.client import Elasticsearch
 from pecan import abort, conf
 from pecan.rest import RestController
+from wsme.exc import InvalidInput
 from wsmeext.pecan import wsexpose
 
 from mailase.api.model import (Mail,
                                Mailbox,
                                MailSearchResult)
 
+class NotFound(Exception):
+    code = 404
+    msg = "Not Found"
+
+    def __init__(self):
+        super(NotFound, self).__init__()
+
+
 class MailboxController(RestController):
 
     @wsexpose([Mailbox])
     def index(self):
-        maildirs = []
-        for maildir in conf.mail.maildirs:
-            for entry in os.listdir(maildir):
-                if os.path.isdir(os.path.join(maildir, entry)):
-                    maildirs.append(entry)
-        return [Mailbox(x) for x in maildirs]
+        mailboxes = []
+        for entry in os.listdir(conf.mail.maildirs):
+            mailbox = Mailbox(entry)
+            if mailbox.exists:
+                mailboxes.append(mailbox)
+        return mailboxes
 
     @wsexpose(Mailbox, str)
     def get(self, name):
-        return Mailbox(name)
+        mbox = Mailbox(name)
+        if not mbox.exists():
+            raise NotFound()
+        return mbox
 
 
 class MailSearchController(RestController):
@@ -51,7 +63,7 @@ class MailController(RestController):
     def get(self, mailbox_id, mail_id):
         mail = Mail(mail_id, mailbox_id)
         if not mail.exists():
-            abort(404)
+            raise NotFound()
         else:
             mail.load_text_payloads()
             return mail

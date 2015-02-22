@@ -1,4 +1,5 @@
 from testtools.matchers import Contains, Equals
+from webtest.app import AppError
 
 from mailase.tests.functional import base
 
@@ -36,3 +37,24 @@ class TestMailboxController(base.FunctionalTest):
         self.assertThat(response.json, Contains({'id': 'INBOX'}))
         self.assertThat(response.json, Contains({'id': 'SPAM'}))
         self.assertThat(len(response.json), Equals(2))
+
+    def test_get_missing(self):
+        self.assertRaises(AppError, self.app.get, '/mailbox/invalid')
+
+
+class TestMailcontroller(base.FunctionalTest):
+
+    def test_get_cur_hello_world(self):
+        self.useMessage('helloworld', 'INBOX', 'cur')
+        response = self.app.get('/mail/INBOX/helloworld:')
+        msg = {u'from_': u'"Mailase Sender" <sender@mailase.test>',
+               u'id': u'helloworld:',
+               u'mailbox_id': u'INBOX',
+               u'subject': u'Hello World!',
+               u'text_payloads': [u'Hello, World!\n']}
+        self.assertThat(response.json, Equals(msg))
+
+    def test_get_missing_message(self):
+        # Make sure dirs are made
+        self.useMessage('helloworld', 'INBOX', 'cur')
+        self.assertRaises(AppError, self.app.get, '/mail/INBOX/missing')

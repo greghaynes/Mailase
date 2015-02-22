@@ -1,5 +1,7 @@
-from email.parser import Parser as EmailParser
 import os
+
+from email.parser import Parser as EmailParser
+from pecan import conf
 
 
 def init_model():
@@ -12,6 +14,13 @@ class Mailbox(object):
 
     def __init__(self, id):
         self.id = id
+
+    @property
+    def path(self):
+        return os.path.join(conf.mail.maildirs, self.id)
+
+    def exists(self):
+        return os.path.isdir(self.path)
 
 
 class Mail(object):
@@ -35,9 +44,9 @@ class Mail(object):
     @property
     def path(self):
         valid = False
-        mail_path_temp = "/home/greghaynes/Mail_testing/%s/%s/%s"
+        maildir_path = os.path.join(conf.mail.maildirs, self.mailbox_id)
         for subdir in ('cur', 'tmp', 'new'):
-            mail_path = mail_path_temp % (self.mailbox_id, subdir, self.id)
+            mail_path = os.path.join(maildir_path, subdir, self.id)
             try:
                 os.stat(mail_path)
                 valid = True
@@ -69,11 +78,7 @@ class Mail(object):
         if msg is None:
             return
 
-        text_payloads = []
-        for part in msg.walk():
-            if part.get_content_type() in ['text/plain']:
-                text_payloads.append(part.as_string())
-        self.text_payloads = text_payloads
+        self.text_payloads = [msg.get_payload()]
 
 
 class MailSearchResult(object):
