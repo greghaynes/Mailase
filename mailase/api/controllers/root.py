@@ -2,7 +2,6 @@ import os
 
 from pecan import conf
 from pecan.rest import RestController
-from wsme import wsproperty
 from wsmeext.pecan import wsexpose
 
 from mailase.api.model import (Mail,
@@ -43,7 +42,7 @@ class SearchRecentControler(RestController):
         offset = offset or 0
         limit = limit or 100
         res = search_api.get_recently_modified(offset, limit)
-        briefs = [MailBrief.from_json(x['brief']) for x in res]
+        briefs = [MailBrief.inflate(x['brief']) for x in res]
         return MailSearchRecentResult(offset, limit, briefs)
 
 

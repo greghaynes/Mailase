@@ -15,11 +15,7 @@ class EsIndexFixture(Fixture):
 
     def setUp(self):
         super(EsIndexFixture, self).setUp()
-        create_body = {
-            'index': {
-                'store': { 'type': 'memory' }
-                }
-            }
+        create_body = {'index': {'store': {'type': 'memory'}}}
         try:
             search_api.refresh()
         except elasticsearch.TransportError as e:
@@ -70,14 +66,14 @@ class TestSearch(base.FunctionalTest):
         self.assertThat(res.json,
                         Equals({'mail_briefs': [],
                                 'limit': 100,
-                                 'offset': 0}))
+                                'offset': 0}))
 
     def test_empty_recent_index_limit_offset(self):
         res = self.app.get('/search/recent/?offset=5&limit=1')
         self.assertThat(res.json,
                         Equals({'mail_briefs': [],
                                 'limit': 1,
-                                 'offset': 5}))
+                                'offset': 5}))
 
     def test_recent_index_single_message(self):
         self.useMessage('helloworld', 'INBOX', 'cur')

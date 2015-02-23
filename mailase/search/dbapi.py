@@ -1,4 +1,3 @@
-import elasticsearch
 from elasticsearch import Elasticsearch
 from pecan import conf
 
@@ -20,14 +19,12 @@ def refresh():
 
 
 def index_mail(mail):
-    json = mail.json
-    index = conf.search.index
-    id_ = mail.brief.id
-    type_ = 'mail'
-    resp = es_client.index(index=index,
-                           body=json,
-                           doc_type=type_,
-                           id=id_)
+    resp = es_client.index(index=conf.search.index,
+                           body=mail.flattened,
+                           doc_type='mail',
+                           id=mail.brief.id)
+    if not resp.get('created'):
+        raise RuntimeError('Error when indexing mail id "%s"' % mail.brief.id)
 
 
 def get_recently_modified(offset, limit):

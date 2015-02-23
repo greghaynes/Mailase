@@ -8,8 +8,7 @@ import mailase.search.dbapi as search_api
 
 class MaildirSubdirHandler(FileSystemEventHandler):
     def __init__(self, path):
-        super(MonitorHandler, self).__init__()
-        self.monitor = monitor
+        super(MaildirSubdirHandler, self).__init__()
         self.path = path
 
     def on_created(self, event):

@@ -58,7 +58,7 @@ class TestMailcontroller(base.FunctionalTest):
     def test_get_message_cur_hello_world(self):
         self.useMessage('helloworld', 'INBOX', 'cur')
         response = self.app.get('/mail/INBOX/helloworld:')
-        msg = {'brief': {'id' : 'helloworld:',
+        msg = {'brief': {'id': 'helloworld:',
                          'mailbox_id': 'INBOX',
                          'modified_on': 12456,
                          'receiver': '"Mailase Receiver" <receiver@mailase.test>',

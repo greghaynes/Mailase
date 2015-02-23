@@ -31,7 +31,7 @@ class MailBrief(object):
         return cls.from_obj(data)
 
     @classmethod
-    def from_obj(cls, data):
+    def inflate(cls, data):
         return MailBrief(data['mailbox_id'], data['id'], data['subdir'],
                          data['sender'], data['receiver'], data['subject'],
                          data['modified_on'])
@@ -48,13 +48,17 @@ class MailBrief(object):
 
     @property
     def json(self):
-        return json.dumps({'mailbox_id': self.mailbox_id,
-                           'id': self.id,
-                           'subdir': self.subdir,
-                           'sender': self.sender,
-                           'receiver': self.receiver,
-                           'subject': self.subject,
-                           'modified_on': self.modified_on})
+        return json.dumps(self.flattened)
+
+    @property
+    def flattened(self):
+        return {'mailbox_id': self.mailbox_id,
+                'id': self.id,
+                'subdir': self.subdir,
+                'sender': self.sender,
+                'receiver': self.receiver,
+                'subject': self.subject,
+                'modified_on': self.modified_on}
 
 
 class Mail(object):
@@ -85,7 +89,7 @@ class Mail(object):
         if subdir is None:
             mail_path = cls.path_for(mailbox_id, mail_id)
             if mail_path is None:
-                raise ValueError('Could not find message with id "%s" in '\
+                raise ValueError('Could not find message with id "%s" in '
                                  'mailbox "%s"' % (mail_id, mailbox_id))
         else:
             mail_path = os.path.join(conf.mail.maildirs, mailbox_id, subdir,
@@ -123,8 +127,12 @@ class Mail(object):
 
     @property
     def json(self):
-        return json.dumps({'brief': self.brief.json,
-                           'text_payloads': self.text_payloads})
+        return json.dumps(self.flattened)
+
+    @property
+    def flattened(self):
+        return {'brief': self.brief.flattened,
+                'text_payloads': self.text_payloads}
 
 
 class Mailbox(object):
