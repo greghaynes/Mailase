@@ -15,13 +15,27 @@ class EsIndexFixture(Fixture):
 
     def setUp(self):
         super(EsIndexFixture, self).setUp()
+        create_body = {
+            'index': {
+                'store': { 'type': 'memory' }
+                }
+            }
         try:
-            search_api.es_client.indices.create(index=self.index)
+            search_api.refresh()
+        except elasticsearch.TransportError as e:
+            pass
+
+        try:
+            search_api.es_client.indices.create(index=self.index,
+                                                body=create_body)
         except elasticsearch.TransportError as e:
             if e.status_code == 400:
                 search_api.es_client.indices.delete(index=self.index)
+                search_api.es_client.indices.create(index=self.index,
+                                                    body=create_body)
             else:
                 raise
+        search_api.refresh()
 
     def cleanUp(self):
         super(EsIndexFixture, self).cleanUp()
@@ -68,3 +82,6 @@ class TestSearch(base.FunctionalTest):
     def test_recent_index_single_message(self):
         self.useMessage('helloworld', 'INBOX', 'cur')
         self.indexer.reindex()
+        search_api.refresh()
+        res = self.app.get('/search/recent/')
+        self.assertThat(len(res.json['mail_briefs']), Equals(1))

@@ -7,6 +7,7 @@ from wsmeext.pecan import wsexpose
 
 from mailase.api.model import (Mail,
                                Mailbox,
+                               MailBrief,
                                MailSearchRecentResult)
 import mailase.search.dbapi as search_api
 
@@ -41,7 +42,9 @@ class SearchRecentControler(RestController):
     def index(self, offset=None, limit=None):
         offset = offset or 0
         limit = limit or 100
-        return MailSearchRecentResult(offset, limit, [])
+        res = search_api.get_recently_modified(offset, limit)
+        briefs = [MailBrief.from_json(x['brief']) for x in res]
+        return MailSearchRecentResult(offset, limit, briefs)
 
 
 class SearchController(RestController):

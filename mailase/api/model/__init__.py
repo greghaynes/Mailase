@@ -26,8 +26,12 @@ class MailBrief(object):
                          msg['subject'], modified_on)
 
     @classmethod
-    def from_json(self, json_data):
+    def from_json(cls, json_data):
         data = json.loads(json_data)
+        return cls.from_obj(data)
+
+    @classmethod
+    def from_obj(cls, data):
         return MailBrief(data['mailbox_id'], data['id'], data['subdir'],
                          data['sender'], data['receiver'], data['subject'],
                          data['modified_on'])

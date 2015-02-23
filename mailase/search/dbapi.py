@@ -1,3 +1,4 @@
+import elasticsearch
 from elasticsearch import Elasticsearch
 from pecan import conf
 
@@ -14,6 +15,10 @@ def server_is_reachable():
     return res.get('status') == 200
 
 
+def refresh():
+    es_client.indices.refresh(index=conf.search.index)
+
+
 def index_mail(mail):
     json = mail.json
     index = conf.search.index
@@ -25,5 +30,9 @@ def index_mail(mail):
                            id=id_)
 
 
-def get_mailbox_recently_modified(mailbox_id, offset, limit):
-    pass
+def get_recently_modified(offset, limit):
+    res = es_client.search(index=conf.search.index,
+                           doc_type='mail',
+                           from_=offset,
+                           size=limit,)['hits']['hits']
+    return [x['_source'] for x in res]
