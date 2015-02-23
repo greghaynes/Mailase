@@ -1,5 +1,5 @@
 from elasticsearch import Elasticsearch
-
+from pecan import conf
 
 es_client = None
 
@@ -14,8 +14,16 @@ def server_is_reachable():
     return res.get('status') == 200
 
 
-def index_mail_path(mail_path):
-    pass
+def index_mail(mail):
+    json = mail.json
+    index = conf.search.index
+    id_ = mail.brief.id
+    type_ = 'mail'
+    resp = es_client.index(index=index,
+                           body=json,
+                           doc_type=type_,
+                           id=id_)
+
 
 def get_mailbox_recently_modified(mailbox_id, offset, limit):
     pass

@@ -3,6 +3,7 @@ import os
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
+from mailase.api.model import Mail
 import mailase.search.dbapi as search_api
 
 class MaildirSubdirHandler(FileSystemEventHandler):
@@ -47,10 +48,11 @@ class Indexer(FileSystemEventHandler):
             for subdir in ('cur', 'new'):
                 mail_subdir = os.path.join(self.maildirs_path, elem, subdir)
                 if os.path.isdir(mail_subdir):
-                    self.index_subdir(mail_subdir)
+                    self.index_subdir(mail_subdir, elem)
 
-    def index_subdir(self, subdir):
+    def index_subdir(self, subdir, mailbox_id):
         for elem in os.listdir(subdir):
             if os.path.isfile(os.path.join(subdir, elem)):
                 mail_path = os.path.join(subdir, elem)
-                search_api.index_mail_path(mail_path)
+                mail = Mail.from_path(mail_path)
+                search_api.index_mail(mail)

@@ -56,11 +56,11 @@ class SearchController(RestController):
 class MailController(RestController):
     @wsexpose(Mail, str, str)
     def get(self, mailbox_id, mail_id):
-        mail = Mail.from_disk(mailbox_id, mail_id)
-        if mail is None:
-            raise NotFound()
-        else:
-            return mail
+        try:
+            mail = Mail.from_id(mailbox_id, mail_id)
+        except ValueError:
+            raise NotFound
+        return mail
 
 
 class RootController(object):
