@@ -75,9 +75,33 @@ class TestSearch(base.FunctionalTest):
                                 'limit': 1,
                                 'offset': 5}))
 
-    def test_recent_index_single_message(self):
+    def test_recent_index_single_message_cur(self):
         self.useMessage('helloworld', 'INBOX', 'cur')
         self.indexer.reindex()
         search_api.refresh()
         res = self.app.get('/search/recent/')
         self.assertThat(len(res.json['mail_briefs']), Equals(1))
+
+    def test_recent_index_multiple_message_cur(self):
+        self.useMessage('helloworld', 'INBOX', 'cur')
+        self.useMessage('helloworld_2', 'INBOX', 'cur')
+        self.indexer.reindex()
+        search_api.refresh()
+        res = self.app.get('/search/recent/')
+        self.assertThat(len(res.json['mail_briefs']), Equals(2))
+
+    def test_recent_index_multiple_message_new(self):
+        self.useMessage('helloworld', 'INBOX', 'new')
+        self.useMessage('helloworld_2', 'INBOX', 'new')
+        self.indexer.reindex()
+        search_api.refresh()
+        res = self.app.get('/search/recent/')
+        self.assertThat(len(res.json['mail_briefs']), Equals(2))
+
+    def test_recent_index_multiple_message_cur_new(self):
+        self.useMessage('helloworld', 'INBOX', 'new')
+        self.useMessage('helloworld_2', 'INBOX', 'new')
+        self.indexer.reindex()
+        search_api.refresh()
+        res = self.app.get('/search/recent/')
+        self.assertThat(len(res.json['mail_briefs']), Equals(2))
