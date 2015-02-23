@@ -32,6 +32,8 @@ class EsIndexFixture(Fixture):
             else:
                 raise
         search_api.refresh()
+        if not search_api.es_client.indices.exists(index=self.index):
+            raise Exception("Index does not exist!")
 
     def cleanUp(self):
         super(EsIndexFixture, self).cleanUp()
