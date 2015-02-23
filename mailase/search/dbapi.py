@@ -1,4 +1,4 @@
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, TransportError
 from pecan import conf
 
 es_client = None
@@ -27,9 +27,16 @@ def index_mail(mail):
         raise RuntimeError('Error when indexing mail id "%s"' % mail.brief.id)
 
 
-def get_recently_modified(offset, limit):
-    res = es_client.search(index=conf.search.index,
-                           doc_type='mail',
-                           from_=offset,
-                           size=limit,)['hits']['hits']
-    return [x['_source'] for x in res]
+def get_recently_modified(offset, limit, retry_count=3):
+    try:
+        res = es_client.search(index=conf.search.index,
+                               doc_type='mail',
+                               from_=offset,
+                               size=limit,)['hits']['hits']
+        res = [x['_source'] for x in res]
+    except TransportError:
+        if retry_count > 0:
+            res = get_recently_modified(offset, limit, retry_count-1)
+        else:
+            raise
+    return res
