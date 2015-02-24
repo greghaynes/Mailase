@@ -1,4 +1,3 @@
-from fixtures import MonkeyPatch
 from testtools.matchers import Contains, Equals
 from webtest.app import AppError
 
@@ -48,19 +47,12 @@ class TestMailboxController(base.FunctionalTest):
 
 
 class TestMailcontroller(base.FunctionalTest):
-    def setUp(self):
-        super(TestMailcontroller, self).setUp()
-
-        def fake_getmtime(path):
-            return 12456.7
-        self.useFixture(MonkeyPatch('os.path.getmtime', fake_getmtime))
-
     def test_get_message_cur_hello_world(self):
         self.useMessage('helloworld', 'INBOX', 'cur')
         response = self.app.get('/mail/INBOX/helloworld:')
         msg = {'brief': {'id': 'helloworld:',
                          'mailbox_id': 'INBOX',
-                         'modified_on': 12456,
+                         'modified_on': 123456,
                          'receiver': '"Mailase Receiver" <receiver@mailase.test>',
                          'sender': '"Mailase Sender" <sender@mailase.test>',
                          'subdir': 'cur',
@@ -73,7 +65,7 @@ class TestMailcontroller(base.FunctionalTest):
         response = self.app.get('/mail/INBOX/helloworld:')
         msg = {'brief': {'id': 'helloworld:',
                          'mailbox_id': 'INBOX',
-                         'modified_on': 12456,
+                         'modified_on': 123456,
                          'receiver': '"Mailase Receiver" <receiver@mailase.test>',
                          'sender': '"Mailase Sender" <sender@mailase.test>',
                          'subdir': 'new',

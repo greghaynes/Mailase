@@ -2,7 +2,7 @@ import fixtures
 import os
 import shutil
 
-from fixtures import Fixture, TempDir
+from fixtures import Fixture, MonkeyPatch, TempDir
 from pecan import set_config
 from pecan.testing import load_test_app
 from testtools import TestCase
@@ -46,6 +46,10 @@ class FunctionalTest(TestCase):
                                       self.test_data_subdir))
         self.maildir = TempDir()
         self.useFixture(self.maildir)
+
+        self.fake_getmtime_val = 123456.7
+        self.useFixture(MonkeyPatch('os.path.getmtime', self.fake_getmtime))
+
         config = {
             'app': {
                 'root': 'mailase.api.controllers.root.RootController',
@@ -101,3 +105,6 @@ class FunctionalTest(TestCase):
         msg = CopiedFileFixture(msg_src_path, msg_dest_path)
         self.useFixture(msg)
         return msg
+
+    def fake_getmtime(self, path):
+        return self.fake_getmtime_val

@@ -23,14 +23,16 @@ def index_mail(mail):
                            body=mail.flattened,
                            doc_type='mail',
                            id=mail.brief.id)
-    if not resp.get('created'):
-        raise RuntimeError('Error when indexing mail id "%s"' % mail.brief.id)
+    return resp
 
 
 def get_recently_modified(offset, limit, retry_count=3):
+    q = {'sort': {'brief.modified_on': {'order': 'desc',
+                                        'unmapped_type': 'long'}}}
     try:
         res = es_client.search(index=conf.search.index,
                                doc_type='mail',
+                               body=q,
                                from_=offset,
                                size=limit,)['hits']['hits']
         res = [x['_source'] for x in res]
