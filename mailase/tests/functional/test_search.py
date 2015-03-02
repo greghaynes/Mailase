@@ -1,62 +1,16 @@
-import elasticsearch
-from fixtures import Fixture
 from pecan import conf
 from testtools.matchers import Equals
 
 from mailase.api.model import Mail
 import mailase.search.dbapi as search_api
-from mailase.search.indexer import Indexer
 from mailase.tests.functional import base
-
-
-class EsIndexFixture(Fixture):
-    def __init__(self, index):
-        super(EsIndexFixture, self).__init__()
-        self.index = index
-
-    def setUp(self):
-        super(EsIndexFixture, self).setUp()
-        create_body = {'index': {'store': {'type': 'memory'}}}
-        try:
-            search_api.refresh()
-        except elasticsearch.TransportError as e:
-            pass
-
-        try:
-            search_api.es_client.indices.create(index=self.index,
-                                                body=create_body)
-        except elasticsearch.TransportError as e:
-            if e.status_code == 400:
-                search_api.es_client.indices.delete(index=self.index)
-                search_api.es_client.indices.create(index=self.index,
-                                                    body=create_body)
-            else:
-                raise
-        search_api.refresh()
-        if not search_api.es_client.indices.exists(index=self.index):
-            raise Exception("Index does not exist!")
-
-    def cleanUp(self):
-        super(EsIndexFixture, self).cleanUp()
-        search_api.es_client.indices.delete(index=self.index)
-
-
-class IndexerFixture(Fixture):
-    def __init__(self):
-        super(IndexerFixture, self).__init__()
-        self.indexer = Indexer(conf.mail.maildirs)
-
-    def cleanUp(self):
-        self.indexer.stop()
-        self.indexer.join()
-        del self.indexer
 
 
 class TestSearch(base.FunctionalTest):
     def setUp(self):
         super(TestSearch, self).setUp()
-        self.useFixture(EsIndexFixture(conf.search.index))
-        indexer_fixture = IndexerFixture()
+        self.useFixture(base.EsIndexFixture(conf.search.index))
+        indexer_fixture = base.IndexerFixture()
         self.useFixture(indexer_fixture)
         self.indexer = indexer_fixture.indexer
 
